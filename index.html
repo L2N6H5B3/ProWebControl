@@ -20,15 +20,31 @@
 </head>
 <body>
 	<div class="container">
+		<div class="header">
+			<img src="img/logo.png" />
+			<a onclick="location.reload();"><i class="fas fa-redo-alt"></i></a>
+		</div>
 		<div class="main">
 			<div class="upper-segment">
-				<img id="current-slide" />
-				<img id="next-slide" />
+				<div id="current-slide-container" class="slide-container hidden">
+					<a onclick="Next();">
+						<subtext>Current</subtext>
+						<img id="current-slide" />
+					</a>
+				</div>
+				<div id="next-slide-container" class="slide-container hidden">
+					<a onclick="Next();">
+						<subtext>Next</subtext>
+						<img id="next-slide" />
+					</a>
+				</div>
 			</div>
 			<div class="lower-segment">
-				<a onclick="Previous();"><i class="fas fa-left"></i></a>
 				<div id="timer-display" class="timer-display"></div>
-				<a onclick="Next();"><i class="fas fa-right"></i></a>
+				<div class="button-container">
+					<a id="previous" class="slide-button" onclick="Previous();"><i class="fas fa-chevron-circle-left"></i></a>
+					<a id="next" class="slide-button" onclick="Next();"><i class="fas fa-chevron-circle-right"></i></a>
+				</div>
 			</div>
 		</div>
 		<div class="footer">

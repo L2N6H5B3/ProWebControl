@@ -1,18 +1,17 @@
 // Variables
 
 // Connection
-var host = "172.16.101.32";
+var host = "172.16.101.27";
 var port = "50000";
 var pass = "control";
-
-// User Preference
-var useCookies = true;
 
 // Application
 var authenticated = false;
 var wsUri = "ws://" + host + ":" + port;
-var presentation;
-var location;
+var presentationSlides;
+var presentationPath;
+var currentSlide;
+var clockIndex;
 var resetTimeout;
 var refresh = true;
 
@@ -31,18 +30,21 @@ function connect() {
 
 function onOpen(evt) {
     if (!authenticated) {
-        webSocket.send('{"action":"authenticate","protocol":"700","password":"' + pass + '"}');
-        console.log('Connected');
+        webSocket.send('{"action":"authenticate","protocol":"701","password":"' + pass + '"}');
     }
 }
 
 function onMessage(evt) {
+    // Parse the message data
     var obj = JSON.parse(evt.data);
-    console.log("Message: " + evt.data);
-
+    // Detect message type
     if (obj.action == "authenticate" && obj.authenticated == "1" && authenticated == false) {
         // If the data is stale
         if (refresh) {
+            // Get the current presentation
+            GetCurrentPresentation();
+            // Get clocks
+            GetClocks();
             // Set data to fresh
             refresh = false;
         }
@@ -55,17 +57,51 @@ function onMessage(evt) {
         // Prevent disconnect auto-refresh
         clearTimeout(resetTimeout);
     } else if (obj.action == "presentationCurrent") {
-        // Create presentation
-        createPresentation(obj);
-    } else if (obj.action == "presentationSlideIndex") {
-        // Display the current ProPresenter presentation
-        displayPresentation(obj);
+        // Save the presentation
+        SetPresentation(obj);
     } else if (obj.action == "presentationTriggerIndex") {
-        // Display the presentation preview slides
-        SetSlidePreview();
+        // Check if this is the same Presentation
+        if (obj.presentationPath == presentationPath) {
+            // Display the presentation preview slides
+            SetSlidePreview(obj.slideIndex);
+        } else {
+            // Get the current presentation
+            GetCurrentPresentation();
+        }
+    } else if (obj.action == "presentationSlideIndex") {
+        // Set the presentation preview slides
+        SetSlidePreview(parseInt(obj.slideIndex));
+        // Display the preview slides
+        $(".slide-container").removeClass("hidden");
     } else if (obj.action == "clearAll") {
         // Clear Preview
         ClearPreview();
+    } else if (obj.action == "clearText") {
+        // Clear Preview
+        ClearPreview();
+    } else if (obj.action == "clockRequest") {
+        // For each clock in the list
+        obj.clockInfo.forEach(function(item, index) {
+            // Find the sermon counter
+            if (item.clockName.toLowerCase().includes("sermon")) {
+                // Set the clock index
+                clockIndex = index;
+                // If the clock is running
+                if (item.clockState) {
+                    // Start receiving clock times
+                    StartReceivingClockTimes();
+                }
+            }
+        });
+    } else if (obj.action == "clockCurrentTimes") {
+        // Update timer display
+        UpdateTimerDisplay(obj);
+    } else if (obj.action == "clockStartStop") {
+        // Update timer display
+        StartStopClockTimes(obj);
+    } else if (obj.action == "clockResetIndex") {
+        // Reset timer display
+        ResetTimerDisplay(obj)
     }
 }
 
@@ -95,72 +131,60 @@ function onClose(evt) {
 //  End WebSocket Functions
 
 
-// Cookie Functions
-
-function setCookie(cname, cvalue, exdays) {
-    var d = new Date();
-    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-    var expires = "expires=" + d.toUTCString();
-    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
-}
-
-function getCookie(cname) {
-    var name = cname + "=";
-    var decodedCookie = decodeURIComponent(document.cookie);
-    var ca = decodedCookie.split(';');
-    for (var i = 0; i < ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0) == ' ') {
-            c = c.substring(1);
-        }
-        if (c.indexOf(name) == 0) {
-            return c.substring(name.length, c.length);
-        }
-    }
-    return "";
-}
-
-function checkCookie(cname) {
-    var name = getCookie(cname);
-    if (name != "") {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-// End Cookie Functions
-
-
-// Settings Functions
-
-function getSlideSizeCookie() {
-    if (checkCookie("slideSize") && useCookies) {
-        slideSize = parseInt(getCookie("slideSize"));
-        document.getElementById("slide-size").value = parseInt(getCookie("slideSize"));
-    } else {
-        document.getElementById("slide-size").value = slideSize;
-    }
-}
-
-function setSlideSizeCookie(int) {
-    setCookie("slideSize", int, 90);
-}
-
-// End Settings Functions
-
-
-// Build Functions
-
-
-
-// End Build Functions
-
-
 // Set Data Functions
 
-function SetSlidePreview() {
+function SetPresentation(obj) {
+    // Reset the current presentation slides
+    presentationSlides = [];
+    // Save the current presentation location
+    presentationPath = obj.presentationPath
+    // Iterate through each slide group
+    obj.presentation.presentationSlideGroups.forEach(
+        function (presentationSlideGroup) {
+            // Iterate through each slide in the group
+            presentationSlideGroup.groupSlides.forEach(
+                function (groupSlide) {
+                    // Add the slide image
+                    presentationSlides.push(groupSlide.slideImage);
+                }
+            );
+        }
+    );
+    // Get the current slide
+    GetCurrentSlide();
+}
 
+function SetSlidePreview(slideIndex) {
+    // Set the current slide index
+    currentSlide = slideIndex;
+    // Set the current slide image
+    $("#current-slide").attr('src', 'data:image/jpg;base64,' + presentationSlides[slideIndex]);
+    // Show the next slide container
+    $("#current-slide-container").removeClass("hidden");
+    // If this is not the first slide
+    if (slideIndex > 1) {
+        // Show the previous button
+        $("#previous").show();
+    } else {
+        // Hide the previous button
+        $("#previous").hide();
+    }
+    // If this is not the last slide
+    if (slideIndex < presentationSlides.length - 1) {
+        // Set the next slide image
+        $("#next-slide").attr('src', 'data:image/jpg;base64,' + presentationSlides[slideIndex + 1]);
+        // Show the next slide container
+        $("#next-slide-container").removeClass("hidden");
+        // Show the next button
+        $("#next").show();
+    } else {
+        // Clear the next slide image
+        $("#next-slide").attr('src', '');
+        // Hide the next slide container
+        $("#next-slide-container").addClass("hidden");
+        // Hide the next button
+        $("#next").hide();
+    }
 }
 
 // End Set Data Functions
@@ -169,16 +193,28 @@ function SetSlidePreview() {
 // Get Data Functions
 
 function GetCurrentPresentation() {
+    // Send the request to ProPresenter
     webSocket.send('{"action":"presentationCurrent", "presentationSlideQuality": 25}');
 }
 
 function GetCurrentSlide() {
+    // Send the request to ProPresenter
     webSocket.send('{"action":"presentationSlideIndex"}');
 }
 
-function GetPresentation(location) {
+function GetClocks() {
     // Send the request to ProPresenter
-    webSocket.send('{"action": "presentationRequest","presentationPath": "' + location + '"}');
+    webSocket.send('{"action":"clockRequest"}');
+}
+
+function StartReceivingClockTimes() {
+    // Send the start receiving clock times command
+    webSocket.send('{"action":"clockStartSendingCurrentTime"}');
+}
+
+function StopReceivingClockTimes() {
+    // Send the stop receiving clock times command
+    webSocket.send('{"action":"clockStopSendingCurrentTime"}');
 }
 
 // End Get Data Functions
@@ -186,20 +222,29 @@ function GetPresentation(location) {
 // Page Actions Functions
 
 function Next() {
-    // Check if this is a playlist or library presentation
-    if (location.charAt(0) == '0') {
-        // Sent the request to ProPresenter
-        webSocket.send('{"action":"presentationTriggerIndex","slideIndex":"' + index + '","presentationPath":"' + location + '"}');
-    } else {
-        // Sent the request to ProPresenter
-        webSocket.send('{"action":"presentationTriggerIndex","slideIndex":"' + index + '","presentationPath":"' + location.replace(/\//g, "\\/") + '"}');
+    if (currentSlide < presentationSlides.length - 1) {
+        // Check if this is a playlist or library presentation
+        if (presentationPath.charAt(0) == '0') {
+            // Sent the request to ProPresenter
+            webSocket.send('{"action":"presentationTriggerIndex","slideIndex":"' + (currentSlide + 1) + '","presentationPath":"' + presentationPath + '"}');
+        } else {
+            // Sent the request to ProPresenter
+            webSocket.send('{"action":"presentationTriggerIndex","slideIndex":"' + (currentSlide + 1) + '","presentationPath":"' + presentationPath.replace(/\//g, "\\/") + '"}');
+        }
     }
-
-
 }
 
 function Previous() {
-
+    if (currentSlide > 0) {
+        // Check if this is a playlist or library presentation
+        if (presentationPath.charAt(0) == '0') {
+            // Sent the request to ProPresenter
+            webSocket.send('{"action":"presentationTriggerIndex","slideIndex":"' + (currentSlide - 1) + '","presentationPath":"' + presentationPath + '"}');
+        } else {
+            // Sent the request to ProPresenter
+            webSocket.send('{"action":"presentationTriggerIndex","slideIndex":"' + (currentSlide - 1) + '","presentationPath":"' + presentationPath.replace(/\//g, "\\/") + '"}');
+        }
+    }
 }
 
 // End Page Actions Functions
@@ -207,9 +252,29 @@ function Previous() {
 
 // Page Display Functions
 
+function StartStopClockTimes(obj) {
+    if (obj.clockIndex == clockIndex && obj.clockState) {
+        StartReceivingClockTimes();
+    } else {
+        StopReceivingClockTimes();
+    }
+}
+
+function UpdateTimerDisplay(obj) {
+    document.getElementById('timer-display').innerHTML = GetClockSmallFormat(obj.clockTimes[clockIndex]);
+}
+
+function ResetTimerDisplay(obj) {
+    if (obj.clockIndex == clockIndex) {
+        document.getElementById('timer-display').innerHTML = "";
+    }
+}
+
 function ClearPreview() {
-    $("#current-slide").empty();
-    $("#next-slide").empty();
+    $("#current-slide").attr('src', '');
+    $("#next-slide").attr('src', '');
+    $("#current-slide-container").addClass('hidden');
+    $("#next-slide-container").addClass('hidden');
 }
 
 // End Page Display Functions
@@ -217,26 +282,12 @@ function ClearPreview() {
 
 // Utility Functions
 
-function getLocation(obj) {
-    // Return the current presentation location
-    return $(obj).children("div").attr("id");
-}
-
-function getClockSmallFormat(obj) {
+function GetClockSmallFormat(obj) {
     if (obj.length > 6) {
-        return obj.split(".")[0];
+        var dayHourMinute = obj.split(".")[0];
+        return dayHourMinute.substring(dayHourMinute.indexOf(":") + 1);
     } else {
         return obj;
-    }
-}
-
-
-function getClockEndTimeFormat(obj) {
-    var endTimeFormatted = getClockSmallFormat(obj);
-    if (endTimeFormatted == "00:00:00") {
-        return "";
-    } else {
-        return endTimeFormatted;
     }
 }
 
@@ -246,9 +297,6 @@ function getClockEndTimeFormat(obj) {
 // Initialisation Functions
 
 function initialise() {
-
-    // Get Cookie Values
-    // getSlideSizeCookie();
 
     // Add listener for action keys
     window.addEventListener('keydown', function (e) {
