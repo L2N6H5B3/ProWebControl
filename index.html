@@ -11,6 +11,8 @@
 	<!-- Load Site JS -->
 	<script type="application/javascript" src="js/site.js?v=1.0"></script>
 
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
 	<link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
 	<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
 	<link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
@@ -41,7 +43,7 @@
 			</div>
 			<div class="lower-segment">
 				<div id="timer-display" class="timer-display"></div>
-				<div class="button-container">
+				<div class="button-container hidden">
 					<a id="previous" class="slide-button" onclick="Previous();"><i class="fas fa-chevron-circle-left"></i></a>
 					<a id="next" class="slide-button" onclick="Next();"><i class="fas fa-chevron-circle-right"></i></a>
 				</div>
@@ -59,7 +61,7 @@
 					</div>
 				</div>
 				<div class="downloading sub-status">
-					<div class="text">Downloading Library Data</div>
+					<div class="text">Downloading Slide Data</div>
 					<div class="loader">
 						<div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
 					</div>

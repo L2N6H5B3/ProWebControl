@@ -52,8 +52,8 @@ function onMessage(evt) {
         authenticated = true;
         // Remove disconnected status
         $(".disconnected").hide();
-        // Show connected status
-        $(".connected").show();
+        // Show downloading status
+        $(".downloading").show();
         // Prevent disconnect auto-refresh
         clearTimeout(resetTimeout);
     } else if (obj.action == "presentationCurrent") {
@@ -73,6 +73,12 @@ function onMessage(evt) {
         SetSlidePreview(parseInt(obj.slideIndex));
         // Display the preview slides
         $(".slide-container").removeClass("hidden");
+        // Display the preview slides
+        $(".button-container").removeClass("hidden");
+        // Hide downloading status
+        $(".downloading").hide();
+        // Show connected status
+        $(".connected").show();
     } else if (obj.action == "clearAll") {
         // Clear Preview
         ClearPreview();
@@ -275,6 +281,10 @@ function ClearPreview() {
     $("#next-slide").attr('src', '');
     $("#current-slide-container").addClass('hidden');
     $("#next-slide-container").addClass('hidden');
+    // Hide the previous button
+    $("#previous").hide();
+    // Hide the next button
+    $("#next").hide();
 }
 
 // End Page Display Functions

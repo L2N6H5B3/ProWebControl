@@ -118,10 +118,6 @@ subtext {
     padding-top: 5px;
 }
 
-.slide-container.hidden {
-    display: none;
-}
-
 .slide-container a {
     display: inline-block;
     margin: auto;
@@ -275,4 +271,8 @@ subtext {
     100% {
         opacity: 0;
     }
+}
+
+.hidden {
+    display: none;
 }
