@@ -1,6 +1,8 @@
 # ProWebControl
 ProWebControl is a simplfied HTML/CSS/JS remote control application for ProPresenter 7, based upon [ProWebRemote](https://github.com/L2N6H5B3/ProWebRemote).
 
+![ProWebRemote](https://raw.githubusercontent.com/L2N6H5B3/ProWebControl/master/Screenshot.png)
+
 ## Installation
 ProWebControl can be either run directly from `index.html` or can be hosted on a webserver that does not use HTTPS.
 Ensure that prior to running that the _IP_, _Port_, and _Password_ have been changed in `site.js`, located in the `js/` folder. 
