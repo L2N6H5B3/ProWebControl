@@ -1,12 +1,12 @@
 # ProWebControl
-ProWebControl is a simplfied HTML/CSS/JS remote control application for ProPresenter 7, based upon ProWebRemote.
+ProWebControl is a simplfied HTML/CSS/JS remote control application for ProPresenter 7, based upon [ProWebRemote](https://github.com/L2N6H5B3/ProWebRemote).
 
 ## Installation
 ProWebControl can be either run directly from `index.html` or can be hosted on a webserver that does not use HTTPS.
 Ensure that prior to running that the _IP_, _Port_, and _Password_ have been changed in `site.js`, located in the `js/` folder. 
 
 ## Usage
-ProWebControl is designed to pull in the currently displayed Presentation from ProPresenter 7 upon launch.
+ProWebControl is designed to pull in the currently displayed Presentation from ProPresenter 7 upon launch, and download slides from presentations as they are selected.  Designed primarily for use in a church sitting, ProWebControl will look for a timer with "`sermon`" somewhere in the title and will display times from this timer.
 
 ## Troubleshooting
 ProWebControl is not connecting to ProPresenter 7
