@@ -168,7 +168,7 @@ function SetSlidePreview(slideIndex) {
     // Show the next slide container
     $("#current-slide-container").removeClass("hidden");
     // If this is not the first slide
-    if (slideIndex > 1) {
+    if (slideIndex > 0) {
         // Show the previous button
         $("#previous").show();
     } else {
