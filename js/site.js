@@ -1,7 +1,7 @@
 // Variables
 
 // Connection
-var host = "172.16.101.27";
+var host = "172.16.101.32";
 var port = "50000";
 var pass = "control";
 
@@ -37,6 +37,7 @@ function onOpen(evt) {
 function onMessage(evt) {
     // Parse the message data
     var obj = JSON.parse(evt.data);
+    console.log(obj);
     // Detect message type
     if (obj.action == "authenticate" && obj.authenticated == "1" && authenticated == false) {
         // If the data is stale
@@ -200,7 +201,7 @@ function SetSlidePreview(slideIndex) {
 
 function GetCurrentPresentation() {
     // Send the request to ProPresenter
-    webSocket.send('{"action":"presentationCurrent", "presentationSlideQuality": 25}');
+    webSocket.send('{"action":"presentationCurrent", "presentationSlideQuality": 100}');
 }
 
 function GetCurrentSlide() {
