@@ -71,6 +71,7 @@ subtext {
     font-size: 13px;
     text-align: left;
     font-style: italic;
+    text-align: center;
 }
 
 .header {
@@ -130,7 +131,7 @@ subtext {
 .slide-container img {
     max-height: 100%;
     max-width: 100%;
-    height: 100%;
+    height: calc(100% - 15px);
 }
 
 .lower-segment {

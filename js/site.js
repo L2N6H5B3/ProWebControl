@@ -7,6 +7,7 @@ var pass = "control";
 
 // Application
 var authenticated = false;
+var webSocket;
 var wsUri = "ws://" + host + ":" + port;
 var presentationSlides;
 var presentationPath;
@@ -22,13 +23,13 @@ var refresh = true;
 function connect() {
     $(".disconnected").show();
     webSocket = new WebSocket(wsUri + "/remote");
-    webSocket.onopen = function (evt) { onOpen(evt) };
-    webSocket.onclose = function (evt) { onClose(evt) };
-    webSocket.onmessage = function (evt) { onMessage(evt) };
-    webSocket.onerror = function (evt) { onError(evt) };
+    webSocket.onopen = function () { onOpen(); };
+    webSocket.onclose = function () { onClose(); };
+    webSocket.onmessage = function (evt) { onMessage(evt); };
+    webSocket.onerror = function (evt) { onError(evt); };
 }
 
-function onOpen(evt) {
+function onOpen() {
     if (!authenticated) {
         webSocket.send('{"action":"authenticate","protocol":"701","password":"' + pass + '"}');
     }
@@ -108,7 +109,7 @@ function onMessage(evt) {
         StartStopClockTimes(obj);
     } else if (obj.action == "clockResetIndex") {
         // Reset timer display
-        ResetTimerDisplay(obj)
+        ResetTimerDisplay(obj);
     }
 }
 
@@ -118,7 +119,7 @@ function onError(evt) {
     webSocket.close();
 }
 
-function onClose(evt) {
+function onClose() {
     authenticated = false;
     // Remove connected status
     $(".connected").hide();
@@ -144,7 +145,7 @@ function SetPresentation(obj) {
     // Reset the current presentation slides
     presentationSlides = [];
     // Save the current presentation location
-    presentationPath = obj.presentationPath
+    presentationPath = obj.presentationPath;
     // Iterate through each slide group
     obj.presentation.presentationSlideGroups.forEach(
         function (presentationSlideGroup) {
@@ -296,7 +297,13 @@ function ClearPreview() {
 function GetClockSmallFormat(obj) {
     if (obj.length > 6) {
         var dayHourMinute = obj.split(".")[0];
-        return dayHourMinute.substring(dayHourMinute.indexOf(":") + 1);
+        var minusTime = "";
+        // If this time is minus
+        if (obj[0] == "-") {
+            // Add the minus symbol
+            minusTime = "-";
+        }
+        return minusTime+dayHourMinute.substring(dayHourMinute.indexOf(":") + 1);
     } else {
         return obj;
     }
@@ -311,21 +318,19 @@ function initialise() {
 
     // Add listener for action keys
     window.addEventListener('keydown', function (e) {
-        if (!inputTyping) {
-            // When spacebar or right arrow is detected
-            if (e.keyCode == 32 || e.keyCode == 39 && e.target == document.body) {
-                // Prevent the default action
-                e.preventDefault();
-                // Trigger the next slide
-                Next();
-            }
-            // When left arrow is detected
-            if (e.keyCode == 37 && e.target == document.body) {
-                // Prevent the default action
-                e.preventDefault();
-                // Trigger the previous slide
-                Previous();
-            }
+        // When spacebar or right arrow is detected
+        if (e.code == "Space" || e.code == "RightArrow") {
+            // Prevent the default action
+            e.preventDefault();
+            // Trigger the next slide
+            Next();
+        }
+        // When left arrow is detected
+        if (e.code == "LeftArrow") {
+            // Prevent the default action
+            e.preventDefault();
+            // Trigger the previous slide
+            Previous();
         }
     });
 
