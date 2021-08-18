@@ -1,7 +1,7 @@
 // Variables
 
 // Connection
-var host = "172.16.101.32";
+var host = "10.1.1.33";
 var port = "50000";
 var pass = "control";
 
@@ -154,10 +154,14 @@ function SetPresentation(obj) {
                 function (groupSlide) {
                     // Add the slide image
                     presentationSlides.push(groupSlide.slideImage);
+                    // Set the status
+                    document.getElementById("slide-status").innerHTML = " ("+(presentationSlides.length+1)+")";
                 }
             );
         }
     );
+    // Set the status
+    document.getElementById("slide-status").innerHTML = "";
     // Get the current slide
     GetCurrentSlide();
 }
@@ -319,14 +323,14 @@ function initialise() {
     // Add listener for action keys
     window.addEventListener('keydown', function (e) {
         // When spacebar or right arrow is detected
-        if (e.code == "Space" || e.code == "RightArrow") {
+        if (e.code == "Space" || e.code == "ArrowRight") {
             // Prevent the default action
             e.preventDefault();
             // Trigger the next slide
             Next();
         }
         // When left arrow is detected
-        if (e.code == "LeftArrow") {
+        if (e.code == "ArrowLeft") {
             // Prevent the default action
             e.preventDefault();
             // Trigger the previous slide
